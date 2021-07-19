@@ -3,11 +3,12 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics.texture import Texture
 from kivy.uix.camera import Camera
 from kivy.lang import Builder
-from kivy.core.audio import SoundLoader
+
 import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
 import time
+from playsound import playsound
 
 Builder.load_file("myapplayout.kv")
 
@@ -53,22 +54,16 @@ class AndroidCamera(Camera):
 
             if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
                 # print('passou da validade')
-                sound = SoundLoader.load('Fora da validade.mp3')
-                if sound:
-                    sound.play()
+                playsound('Fora da validade.mp3')
 
             elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
                     (int(data_hora['ano']) == (int(ano_v))):
                 # print('passou da validade')
-                sound = SoundLoader.load('Fora da validade.mp3')
-                if sound:
-                    sound.play()
+                playsound('Fora da validade.mp3')
 
             else:
                 # print('dentro da validade')
-                sound = SoundLoader.load('Dentro da validade.mp3')
-                if sound:
-                    sound.play()
+                playsound('Dentro da validade.mp3')
 
         flipped = np.flip(frame_rgb, 0)
         buf = flipped.tostring()
