@@ -1,71 +1,51 @@
 from kivy.app import App
-from kivy.uix.image import Image
-from kivy.clock import Clock
+from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics.texture import Texture
+from kivy.uix.camera import Camera
+from kivy.lang import Builder
+import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
-from playsound import playsound
-import time
+
+Builder.load_file("myapplayout.kv")
 
 
-code = 0
-data_atual = time.localtime()
-data_hora = {'ano': data_atual.tm_year,
-             'mes': data_atual.tm_mon,
-             'dia': data_atual.tm_mday,
-             'hora': data_atual.tm_hour,
-             'dia da semana': data_atual.tm_wday
-             }
+class AndroidCamera(Camera):
+    camera_resolution = (640, 480)
 
-class KivyCamera(Image):
-    def __init__(self, capture, fps, **kwargs):
-        super(KivyCamera, self).__init__(**kwargs)
-        self.capture = capture
-        Clock.schedule_interval(self.update, 1.0 / fps)
+    def _camera_loaded(self, *largs):
+        self.texture = Texture.create(size=np.flip(self.camera_resolution), colorfmt='rgb')
+        self.texture_size = list(self.texture.size)
 
-    def update(self, dt):
-        ret, frame = self.capture.read()
-        if ret:
-            # convert it to texture
-            buf1 = cv2.flip(frame, 0)
-            buf = buf1.tostring()
-            image_texture = Texture.create(
-                size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
-            image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
-            # display image from the texture
-            self.texture = image_texture
+    def on_tex(self, *l):
+        if self._camera._buffer is None:
+            return None
+        frame = self.frame_from_buf()
+        self.frame_to_screen(frame)
+        super(AndroidCamera, self).on_tex(*l)
 
-            for barcode in decode(frame):
-                myData = barcode.data.decode('utf-8')
-                #print(myData)
+    def frame_from_buf(self):
+        w, h = self.resolution
+        frame = np.frombuffer(self._camera._buffer.tostring(), 'uint8').reshape((h + h // 2, w))
+        frame_bgr = cv2.cvtColor(frame, 93)
+        return np.rot90(frame_bgr, 3)
 
-                dia_v = myData[0:2]
-                mes_v = myData[2:4]
-                ano_v = myData[4:]
+    def frame_to_screen(self, frame):
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        for barcode in decode(frame):
+            myData = barcode.data.decode('utf-8')
+            cv2.putText(frame_rgb, str(myData), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
+                        cv2.LINE_AA)
+        flipped = np.flip(frame_rgb, 0)
+        buf = flipped.tostring()
+        self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
 
-                if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
-                    #print('passou da validade')
-                    playsound('Fora da validade.mp3')
-                elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
-                        (int(data_hora['ano']) == (int(ano_v))):
-                    #print('passou da validade')
-                    playsound('Fora da validade.mp3')
+class MyLayout(BoxLayout):
+    pass
 
-                else:
-                    #print('dentro da validade')
-                    playsound('Dentro da validade.mp3')
-
-
-class CamApp(App):
+class MyApp(App):
     def build(self):
-        self.capture = cv2.VideoCapture(0)
-        self.my_camera = KivyCamera(capture=self.capture, fps=30)
-        return self.my_camera
-
-    def on_stop(self):
-        # without this, app will not exit even if the window is closed
-        self.capture.release()
-
+        return MyLayout()
 
 if __name__ == '__main__':
-    CamApp().run()
+    MyApp().run()
