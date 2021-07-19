@@ -3,11 +3,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics.texture import Texture
 from kivy.uix.camera import Camera
 from kivy.lang import Builder
+from kivy.core.audio import SoundLoader
 import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
 import time
-from playsound import playsound
 
 Builder.load_file("myapplayout.kv")
 
@@ -45,24 +45,30 @@ class AndroidCamera(Camera):
     def frame_to_screen(self, frame):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         for barcode in decode(frame):
-            myData = barcode.data.decode('utf-8')
-            cv2.putText(frame_rgb, str(myData), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
-                        cv2.LINE_AA)
-            dia_v = myData[0:2]
-            mes_v = myData[2:4]
-            ano_v = myData[4:]
+            my_data = barcode.data.decode('utf-8')
+
+            dia_v = my_data[0:2]
+            mes_v = my_data[2:4]
+            ano_v = my_data[4:]
 
             if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
                 # print('passou da validade')
-                playsound('Fora da validade.mp3')
+                sound = SoundLoader.load('Fora da validade.mp3')
+                if sound:
+                    sound.play()
+
             elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
                     (int(data_hora['ano']) == (int(ano_v))):
                 # print('passou da validade')
-                playsound('Fora da validade.mp3')
+                sound = SoundLoader.load('Fora da validade.mp3')
+                if sound:
+                    sound.play()
 
             else:
                 # print('dentro da validade')
-                playsound('Dentro da validade.mp3')
+                sound = SoundLoader.load('Dentro da validade.mp3')
+                if sound:
+                    sound.play()
 
         flipped = np.flip(frame_rgb, 0)
         buf = flipped.tostring()
