@@ -33,8 +33,9 @@ class AndroidCamera(Camera):
     def frame_to_screen(self, frame):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         for barcode in decode(frame):
-            myData = barcode.data.decode('utf-8')
-            cv2.putText(frame_rgb, str(myData), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
+            my_data = barcode.data.decode('utf-8')
+            my_data = [my_data[0:2], my_data[3:5], my_data[6:]]
+            cv2.putText(frame_rgb, str(my_data), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
                         cv2.LINE_AA)
         flipped = np.flip(frame_rgb, 0)
         buf = flipped.tostring()
