@@ -30,8 +30,8 @@ class AndroidCamera(Camera):
 
     def _camera_loaded(self, *largs):
         if self.dentro_sound == None:
-            self.dentro_sound = SoundLoader.load('Dentro da validade.mp3')
-            self.fora_sound = SoundLoader.load('Fora da validade.mp3')
+            self.dentro_sound = SoundLoader.load('Dentro da validade.wav')
+            self.fora_sound = SoundLoader.load('Fora da validade.wav')
         self.texture = Texture.create(size=np.flip(self.camera_resolution), colorfmt='rgb')
         self.texture_size = list(self.texture.size)
 
