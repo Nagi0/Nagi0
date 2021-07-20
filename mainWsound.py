@@ -3,15 +3,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics.texture import Texture
 from kivy.uix.camera import Camera
 from kivy.lang import Builder
+from kivy.core.audio import SoundLoader
 
 import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
 import time
-from playsound import playsound
 
 Builder.load_file("myapplayout.kv")
-
 
 code = 0
 data_atual = time.localtime()
@@ -26,7 +25,13 @@ data_hora = {'ano': data_atual.tm_year,
 class AndroidCamera(Camera):
     camera_resolution = (640, 480)
 
+    dentro_sound = None
+    fora_sound = None
+
     def _camera_loaded(self, *largs):
+        if self.dentro_sound == None:
+            self.dentro_sound = SoundLoader.load('Dentro da validade.mp3')
+            self.fora_sound = SoundLoader.load('Fora da validade.mp3')
         self.texture = Texture.create(size=np.flip(self.camera_resolution), colorfmt='rgb')
         self.texture_size = list(self.texture.size)
 
@@ -49,22 +54,21 @@ class AndroidCamera(Camera):
             my_data = barcode.data.decode('utf-8')
 
             dia_v = my_data[0:2]
-            mes_v = my_data[2:4]
-            ano_v = my_data[4:]
+            mes_v = my_data[3:5]
+            ano_v = my_data[6:]
 
             if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
                 # print('passou da validade')
-                playsound('Fora da validade.mp3')
+                self.fora_sound.play()
 
             elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
                     (int(data_hora['ano']) == (int(ano_v))):
                 # print('passou da validade')
-                playsound('Fora da validade.mp3')
+                self.fora_sound.play()
 
             else:
                 # print('dentro da validade')
-                playsound('Dentro da validade.mp3')
-
+                self.dentro_sound.play()
         flipped = np.flip(frame_rgb, 0)
         buf = flipped.tostring()
         self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
