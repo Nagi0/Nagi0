@@ -27,12 +27,14 @@ class AndroidCamera(Camera):
 
     dentro_sound = None
     fora_sound = None
+    invalido_sound = None
     my_data = '0'
 
     def _camera_loaded(self, *largs):
         if self.dentro_sound == None:
             self.dentro_sound = SoundLoader.load('Dentro da validade.wav')
             self.fora_sound = SoundLoader.load('Fora da validade.wav')
+            self.invalido_sound = SoundLoader.load('Codigo Invalido.wav')
         self.texture = Texture.create(size=np.flip(self.camera_resolution), colorfmt='rgb')
         self.texture_size = list(self.texture.size)
 
@@ -58,20 +60,24 @@ class AndroidCamera(Camera):
             mes_v = self.my_data[3:5]
             ano_v = self.my_data[6:]
 
-            if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
-                # print('passou da validade')
-                self.fora_sound.play()
-                time.sleep(3)
+            try:
+                if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
+                    # print('passou da validade')
+                    self.fora_sound.play()
+                    time.sleep(3)
 
-            elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
-                    (int(data_hora['ano']) == (int(ano_v))):
-                # print('passou da validade')
-                self.fora_sound.play()
-                time.sleep(3)
+                elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
+                        (int(data_hora['ano']) == (int(ano_v))):
+                    # print('passou da validade')
+                    self.fora_sound.play()
+                    time.sleep(3)
 
-            else:
-                # print('dentro da validade')
-                self.dentro_sound.play()
+                else:
+                    # print('dentro da validade')
+                    self.dentro_sound.play()
+                    time.sleep(3)
+            except:
+                self.invalido_sound.play()
                 time.sleep(3)
 
         cv2.putText(frame_rgb, str(self.my_data), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
