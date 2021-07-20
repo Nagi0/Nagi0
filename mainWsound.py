@@ -27,6 +27,7 @@ class AndroidCamera(Camera):
 
     dentro_sound = None
     fora_sound = None
+    my_data = '0'
 
     def _camera_loaded(self, *largs):
         if self.dentro_sound == None:
@@ -51,24 +52,31 @@ class AndroidCamera(Camera):
     def frame_to_screen(self, frame):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         for barcode in decode(frame):
-            my_data = barcode.data.decode('utf-8')
+            self.my_data = barcode.data.decode('utf-8')
 
-            dia_v = my_data[0:2]
-            mes_v = my_data[3:5]
-            ano_v = my_data[6:]
+            dia_v = self.my_data[0:2]
+            mes_v = self.my_data[3:5]
+            ano_v = self.my_data[6:]
 
             if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
                 # print('passou da validade')
                 self.fora_sound.play()
+                time.sleep(3)
 
             elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
                     (int(data_hora['ano']) == (int(ano_v))):
                 # print('passou da validade')
                 self.fora_sound.play()
+                time.sleep(3)
 
             else:
                 # print('dentro da validade')
                 self.dentro_sound.play()
+                time.sleep(3)
+
+        cv2.putText(frame_rgb, str(self.my_data), (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
+                    cv2.LINE_AA)
+
         flipped = np.flip(frame_rgb, 0)
         buf = flipped.tostring()
         self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
