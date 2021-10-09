@@ -9,17 +9,17 @@ import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
 import time
+from datetime import datetime
 
 Builder.load_file("myapplayout.kv")
 
 code = 0
-data_atual = time.localtime()
-data_hora = {'ano': data_atual.tm_year,
-             'mes': data_atual.tm_mon,
-             'dia': data_atual.tm_mday,
-             'hora': data_atual.tm_hour,
-             'dia da semana': data_atual.tm_wday
-             }
+
+data_atual = datetime.today()
+
+
+def dates_dif(date_qr, current_date):
+    return (date_qr - current_date).days
 
 
 class AndroidCamera(Camera):
@@ -56,26 +56,18 @@ class AndroidCamera(Camera):
         for barcode in decode(frame):
             self.my_data = barcode.data.decode('utf-8')
 
-            dia_v = self.my_data[0:2]
-            mes_v = self.my_data[3:5]
-            ano_v = self.my_data[6:]
+            self.my_data = datetime.strptime(self.my_data, '%d/%m/%Y')
 
             try:
-                if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
-                    # print('passou da validade')
-                    self.fora_sound.play()
-                    time.sleep(3)
-
-                elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
-                        (int(data_hora['ano']) == (int(ano_v))):
-                    # print('passou da validade')
-                    self.fora_sound.play()
-                    time.sleep(3)
-
-                else:
-                    # print('dentro da validade')
+                if dates_dif(self.my_data, data_atual) >= 0:
+                    # print('Dentro da Validade')
                     self.dentro_sound.play()
                     time.sleep(3)
+                else:
+                    # print('Fora da Validade')
+                    self.fora_sound.play()
+                    time.sleep(3)
+
             except:
                 self.invalido_sound.play()
                 time.sleep(3)
