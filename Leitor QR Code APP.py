@@ -5,22 +5,26 @@ from kivy.graphics.texture import Texture
 import cv2
 from pyzbar.pyzbar import decode
 from playsound import playsound
+
 import time
+from datetime import datetime
+from datetime import datetime
+from kivy.core.audio import SoundLoader
 
 
 code = 0
-data_atual = time.localtime()
-data_hora = {'ano': data_atual.tm_year,
-             'mes': data_atual.tm_mon,
-             'dia': data_atual.tm_mday,
-             'hora': data_atual.tm_hour,
-             'dia da semana': data_atual.tm_wday
-             }
+data_atual = datetime.today()
+
+
+def dates_dif(date_qr, current_date):
+    return (date_qr - current_date).days
+
 
 class KivyCamera(Image):
     def __init__(self, capture, fps, **kwargs):
         super(KivyCamera, self).__init__(**kwargs)
         self.capture = capture
+        self.my_data = '0'
         Clock.schedule_interval(self.update, 1.0 / fps)
 
     def update(self, dt):
@@ -28,7 +32,7 @@ class KivyCamera(Image):
         if ret:
             # convert it to texture
             buf1 = cv2.flip(frame, 0)
-            buf = buf1.tobytes()
+            buf = buf1.tostring()
             image_texture = Texture.create(
                 size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
@@ -36,25 +40,23 @@ class KivyCamera(Image):
             self.texture = image_texture
 
             for barcode in decode(frame):
-                myData = barcode.data.decode('utf-8')
-                #print(myData)
+                self.my_data = barcode.data.decode('utf-8')
 
-                dia_v = myData[0:2]
-                mes_v = myData[2:4]
-                ano_v = myData[4:]
+                self.my_data = datetime.strptime(self.my_data, '%d/%m/%Y')
+                try:
+                    if dates_dif(self.my_data, data_atual) >= 0:
+                        print('Dentro da Validade')
+                        # self.dentro_sound.play()
+                        # time.sleep(3)
+                    else:
+                        print('Fora da Validade')
+                        # self.fora_sound.play()
+                        # time.sleep(3)
 
-                if (int(data_hora['mes'])) > (int(mes_v)) or (int(data_hora['ano'])) > (int(ano_v)):
-                    #print('passou da validade')
-                    playsound('Fora da validade.mp3')
-                elif (int(data_hora['dia'])) > (int(dia_v)) and (int(data_hora['mes']) == (int(mes_v))) and \
-                        (int(data_hora['ano']) == (int(ano_v))):
-                    #print('passou da validade')
-                    playsound('Fora da validade.mp3')
-
-                else:
-                    #print('dentro da validade')
-                    playsound('Dentro da validade.mp3')
-
+                except:
+                    pass
+                    # self.invalido_sound.play()
+                    # time.sleep(3)
             tecla = cv2.waitKey(2)
 
             if tecla == 27:
