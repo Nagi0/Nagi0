@@ -1,7 +1,7 @@
 from kivy.app import App, Widget
 from kivy.lang import Builder
 from datetime import datetime
-# from dateutil import relativedelta
+from dateutil import relativedelta
 from kivy.core.audio import SoundLoader
 from kivy.uix.image import Image
 from kivy.uix.button import ButtonBehavior
@@ -17,10 +17,10 @@ def dates_dif(date_qr, current_date):
 
 
 def dates_dif_v2(date_qr, current_date):
-    # (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
-    days = date_qr.day - current_date.day
-    mounths = date_qr.month - current_date.month
-    years = date_qr.year - current_date.year
+    dates_diff = relativedelta.relativedelta(date_qr, current_date)
+    days = dates_diff.days
+    mounths = dates_diff.months
+    years = dates_diff.years
     return days, mounths, years
 
 
@@ -83,7 +83,8 @@ class MyLayout(Widget):
     def print_code(self, code):
         self.d = {}
         for i in range(32):
-            self.d["{0} dias".format(i)] = SoundLoader.load('{} dias.wav'.format(i))
+            if self.d["{0} dias".format(i)]  == None:
+                self.d["{0} dias".format(i)] = SoundLoader.load('{} dias.wav'.format(i))
 
         code = code[2:12]
         code = str(code)
