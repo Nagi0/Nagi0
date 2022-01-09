@@ -4,6 +4,7 @@ READ ALL THE STEPS FIRST, then proceed with your project.
 MAKE OPENCV APPS:
 It's recommended to use Linux 18.04 and use pycharm, to download pycharm and setup linux to build android apps see the tutorial:
 https://www.youtube.com/watch?v=c4tuSxSoERY&t=245s&ab_channel=NorbertTiborcz
+On the OpencvAPP folder there are a few exemples of opencv codes with kivy, the buildozer.specs and app_layout.kv files are included too
 
 USE ZBARCAM:
 It's also recommended to use Linux 18.04 and use pycharm
